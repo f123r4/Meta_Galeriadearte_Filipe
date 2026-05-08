@@ -1,0 +1,32 @@
+# Pastas geradas automaticamente pelo Unity — não versionar
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+
+# Meta XR SDK cache
+/Assets/Oculus/
+/Assets/MetaXR/
+
+# Arquivos de IDE
+.vs/
+.idea/
+*.suo
+*.user
+*.csproj
+*.sln
+
+# Arquivos do SO
+.DS_Store
+Thumbs.db
+
+# Builds Android
+*.apk
+*.aab
+*.keystore
+
+# Logs e temporários Unity
+crashlytics-build.properties
