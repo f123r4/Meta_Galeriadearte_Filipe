@@ -1,103 +1,55 @@
-// =============================================================
-// PlayerController.cs
-// Movimentação do jogador no ambiente VR
-//   - Joystick esquerdo do Meta Quest (XR Input)
-//   - Teclado WASD como fallback para testes no Editor
-// Componente obrigatório: CharacterController
-// =============================================================
-
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.XR;
-using MeuAmbienteVR.Models;
 
-namespace MeuAmbienteVR
+public class PlayerController : MonoBehaviour
 {
-    [RequireComponent(typeof(CharacterController))]
-    public class PlayerController : MonoBehaviour
+    [SerializeField] public Camera referenciaCamera;
+    [SerializeField] float velocidade = 3f;
+    [SerializeField] float raioColeta = 1.5f;
+    [SerializeField] float raioBotao  = 1.2f;
+
+    private BotaoPrincipalController botaoAtual = null;
+
+    void Update()
     {
-        [Header("Movimento")]
-        [SerializeField] private float velocidade     = 3f;
-        [SerializeField] private float gravidade      = -9.81f;
+        float h = Input.GetAxis("Horizontal");
+        float v = Input.GetAxis("Vertical");
+        transform.Translate(new Vector3(h, 0, v) * velocidade * Time.deltaTime, Space.Self);
 
-        [Header("Câmera / XR Origin")]
-        // Arraste o XROrigin (ou Main Camera) para orientar o movimento
-        [SerializeField] private Transform referenciaCamera;
-
-        private CharacterController cc;
-        private JogadorModel        jogadorModel;
-        private float               velocidadeVertical;
-
-        // ── Ciclo de vida ────────────────────────────────────────
-
-        private void Awake()
+        // Coleta por proximidade
+        foreach (var col in Physics.OverlapSphere(transform.position, raioColeta))
         {
-            cc = GetComponent<CharacterController>();
+            var ctrl = col.GetComponent<ObjetoColetavelController>();
+            if (ctrl != null) ctrl.TentarColetar();
         }
 
-        private void Start()
+        // Hover do botao por proximidade
+        BotaoPrincipalController botaoEncontrado = null;
+        foreach (var col in Physics.OverlapSphere(transform.position, raioBotao))
         {
-            // Obtém o Model do jogador registrado no GameManager
-            jogadorModel = GameManager.Instancia?.ObterJogador();
-
-            // Usa Main Camera se nenhuma referência foi atribuída
-            if (referenciaCamera == null && Camera.main != null)
-                referenciaCamera = Camera.main.transform;
+            var b = col.GetComponent<BotaoPrincipalController>();
+            if (b != null) { botaoEncontrado = b; break; }
         }
 
-        private void Update()
+        if (botaoEncontrado != null && botaoAtual == null)
         {
-            Mover();
+            botaoAtual = botaoEncontrado;
+            botaoAtual.AoEntrarHoverProximidade();
+        }
+        else if (botaoEncontrado == null && botaoAtual != null)
+        {
+            botaoAtual.AoSairHoverProximidade();
+            botaoAtual = null;
         }
 
-        // ── Lógica de movimento ──────────────────────────────────
+        if (botaoAtual != null && (Input.GetKeyDown(KeyCode.E) || Input.GetMouseButtonDown(0)))
+            botaoAtual.AoPressionarProximidade();
+    }
 
-        private void Mover()
-        {
-            Vector2 eixo = LerEixo();
-
-            // Aplica gravidade enquanto o jogador está no ar
-            velocidadeVertical = cc.isGrounded ? -0.5f
-                                               : velocidadeVertical + gravidade * Time.deltaTime;
-
-            Vector3 direcaoHorizontal = ProjetarNaCamera(eixo);
-            Vector3 deslocamento      = direcaoHorizontal * velocidade;
-            deslocamento.y            = velocidadeVertical;
-
-            cc.Move(deslocamento * Time.deltaTime);
-
-            // Informa ao Model se o jogador está em movimento
-            jogadorModel?.SetMovimento(eixo.magnitude > 0.05f);
-        }
-
-        // Lê o joystick XR; se indisponível usa o teclado
-        private Vector2 LerEixo()
-        {
-            var dispositivos = new List<InputDevice>();
-            InputDevices.GetDevicesAtXRNode(XRNode.LeftHand, dispositivos);
-
-            if (dispositivos.Count > 0)
-            {
-                Vector2 joystick;
-                if (dispositivos[0].TryGetFeatureValue(CommonUsages.primary2DAxis, out joystick)
-                    && joystick.magnitude > 0.05f)
-                    return joystick;
-            }
-
-            // Fallback: WASD / setas do teclado
-            return new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-        }
-
-        // Transforma o input 2D na direção 3D relativa à câmera (sem componente vertical)
-        private Vector3 ProjetarNaCamera(Vector2 eixo)
-        {
-            if (referenciaCamera == null)
-                return new Vector3(eixo.x, 0f, eixo.y);
-
-            Vector3 frente  = referenciaCamera.forward; frente.y  = 0f; frente.Normalize();
-            Vector3 direita = referenciaCamera.right;   direita.y = 0f; direita.Normalize();
-
-            return frente * eixo.y + direita * eixo.x;
-        }
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, raioColeta);
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, raioBotao);
     }
 }
