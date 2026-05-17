@@ -199,4 +199,4 @@ Para cada `Exibito_*` → no `Quadro` filho:
 
 ---
 
-*Web 3.0 | Residência em TIC 29 — 2025 | Filipe Mazon*
+*Web 3.0 | Residência em TIC 29 — 2026 | Filipe Mazon*
