@@ -6,7 +6,7 @@ Aluno: Filipe Mazon | Prof.: Ana Beatriz
 
 ## Apresentando o Projeto
 
-O **MetaMuseu** é uma galeria de arte virtual imersiva desenvolvida com Unity 6 e Meta XR SDK, inserida no contexto do Metaverso. O visitante explora um espaço museológico 3D onde pode interagir com obras de arte digitais — ao se aproximar de uma obra, ela brilha e exibe um painel com título, artista, ano e descrição. Uma porta animada guarda a entrada, e um botão de tour guiado pode ser ativado. O sistema de pontuação registra cada obra visitada.
+O **MetaMuseu** é uma galeria de arte virtual imersiva desenvolvida com Unity 6 e Meta XR SDK, inserida no contexto do Metaverso. O visitante começa na ante-sala, onde interage com o **Validador de Ingresso** — um totem com botão que libera o acesso ao salão principal. No salão, 6 obras de arte são expostas nas paredes para contemplação. A única interação disponível é o acionamento do totem na entrada.
 
 ---
 
