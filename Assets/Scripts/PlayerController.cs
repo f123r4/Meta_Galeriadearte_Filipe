@@ -1,55 +1,90 @@
 using UnityEngine;
 
+[RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] public Camera referenciaCamera;
-    [SerializeField] float velocidade = 3f;
-    [SerializeField] float raioColeta = 1.5f;
-    [SerializeField] float raioBotao  = 1.2f;
+    [SerializeField] private float velocidade        = 3f;
+    [SerializeField] private float velocidadeRotacao = 120f;
+    [SerializeField] private float raioInteracao     = 1.8f;
 
-    private BotaoPrincipalController botaoAtual = null;
+    private static readonly int                  TodасAsLayers = ~0;
+    private static readonly QueryTriggerInteraction ComTriggers = QueryTriggerInteraction.Collide;
 
-    void Update()
+    private CharacterController        _cc;
+    private float                      _velocidadeY;
+    private ExibitoController          _exibitoAtual;
+    private BotaoPrincipalController   _botaoAtual;
+
+    private void Awake() => _cc = GetComponent<CharacterController>();
+
+    private void Update()
     {
-        float h = Input.GetAxis("Horizontal");
-        float v = Input.GetAxis("Vertical");
-        transform.Translate(new Vector3(h, 0, v) * velocidade * Time.deltaTime, Space.Self);
-
-        // Coleta por proximidade
-        foreach (var col in Physics.OverlapSphere(transform.position, raioColeta))
-        {
-            var ctrl = col.GetComponent<ObjetoColetavelController>();
-            if (ctrl != null) ctrl.TentarColetar();
-        }
-
-        // Hover do botao por proximidade
-        BotaoPrincipalController botaoEncontrado = null;
-        foreach (var col in Physics.OverlapSphere(transform.position, raioBotao))
-        {
-            var b = col.GetComponent<BotaoPrincipalController>();
-            if (b != null) { botaoEncontrado = b; break; }
-        }
-
-        if (botaoEncontrado != null && botaoAtual == null)
-        {
-            botaoAtual = botaoEncontrado;
-            botaoAtual.AoEntrarHoverProximidade();
-        }
-        else if (botaoEncontrado == null && botaoAtual != null)
-        {
-            botaoAtual.AoSairHoverProximidade();
-            botaoAtual = null;
-        }
-
-        if (botaoAtual != null && (Input.GetKeyDown(KeyCode.E) || Input.GetMouseButtonDown(0)))
-            botaoAtual.AoPressionarProximidade();
+        Mover();
+        VerificarProximidadeExibito();
+        VerificarProximidadeBotao();
     }
 
-    void OnDrawGizmosSelected()
+    private void Mover()
     {
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, raioColeta);
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, raioBotao);
+        if (_cc.isGrounded) _velocidadeY = -0.5f;
+        else _velocidadeY += Physics.gravity.y * Time.deltaTime;
+
+        float move   = Input.GetAxis("Vertical");
+        float rotate = Input.GetAxis("Horizontal");
+
+        transform.Rotate(0f, rotate * velocidadeRotacao * Time.deltaTime, 0f, Space.Self);
+
+        Vector3 dir = transform.forward * move * velocidade;
+        _cc.Move((dir + Vector3.up * _velocidadeY) * Time.deltaTime);
+    }
+
+    private void VerificarProximidadeExibito()
+    {
+        ExibitoController maisProximo = null;
+        float menorDist = float.MaxValue;
+
+        foreach (var col in Physics.OverlapSphere(transform.position, raioInteracao, TodасAsLayers, ComTriggers))
+        {
+            var ex = col.GetComponentInParent<ExibitoController>();
+            if (ex == null) continue;
+            float d = Vector3.Distance(transform.position, ex.transform.position);
+            if (d < menorDist) { menorDist = d; maisProximo = ex; }
+        }
+
+        if (maisProximo == _exibitoAtual) return;
+        _exibitoAtual?.AoSairHover();
+        _exibitoAtual = maisProximo;
+        _exibitoAtual?.AoEntrarHover();
+    }
+
+    private void VerificarProximidadeBotao()
+    {
+        BotaoPrincipalController maisProximo = null;
+        float menorDist = float.MaxValue;
+
+        foreach (var col in Physics.OverlapSphere(transform.position, raioInteracao, TodасAsLayers, ComTriggers))
+        {
+            var btn = col.GetComponentInParent<BotaoPrincipalController>();
+            if (btn == null) continue;
+            float d = Vector3.Distance(transform.position, btn.transform.position);
+            if (d < menorDist) { menorDist = d; maisProximo = btn; }
+        }
+
+        if (maisProximo != _botaoAtual)
+        {
+            _botaoAtual?.AoSairHoverProximidade();
+            _botaoAtual = maisProximo;
+            _botaoAtual?.AoEntrarHoverProximidade();
+        }
+
+        if (_botaoAtual != null && Input.GetKeyDown(KeyCode.E))
+            _botaoAtual.AoPressionarProximidade();
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, raioInteracao);
     }
 }

@@ -1,9 +1,30 @@
-# Meu Ambiente VR
-**Web 3.0 | Residência em TIC 29 — Unidade 1 / Capítulo 3**  
+# MetaMuseu — Galeria de Arte Virtual
+**Web 3.0 | Residência em TIC 29 — Unidade 1 / Capítulo 3 (Projeto Avançado)**  
 Aluno: Filipe Mazon | Prof.: Ana Beatriz
 
-Experiência em Realidade Virtual desenvolvida com Unity 2022 LTS e Meta XR SDK.  
-O jogador navega por um ambiente 3D, coleta objetos interativos e acumula pontuação no HUD.
+---
+
+## Apresentando o Projeto
+
+O **MetaMuseu** é uma galeria de arte virtual imersiva desenvolvida com Unity 6 e Meta XR SDK, inserida no contexto do Metaverso. O visitante explora um espaço museológico 3D onde pode interagir com obras de arte digitais — ao se aproximar de uma obra, ela brilha e exibe um painel com título, artista, ano e descrição. Uma porta animada guarda a entrada, e um botão de tour guiado pode ser ativado. O sistema de pontuação registra cada obra visitada.
+
+---
+
+## Contexto e Objetivos no Metaverso
+
+O projeto representa um **ambiente cultural e educacional** no Metaverso: democratizar o acesso à arte permitindo que qualquer pessoa visite um museu virtual de alta qualidade sem barreiras geográficas ou financeiras. O ambiente resolve o problema do desengajamento em exposições tradicionais ao tornar cada obra interativa e contextualizada.
+
+---
+
+## Processo de Criação e Dificuldades
+
+O projeto evoluiu a partir do ambiente básico (Trabalho 1), onde existia apenas uma casa com objetos coletáveis. Para o avançado, o ambiente foi completamente retemáticado como museu e a arquitetura MVC foi expandida com novos tipos de objetos: `ExibitoController`, `PortaAnimadaController` e `PainelInfoController`.
+
+**Maiores desafios:**
+- **Emissão URP em runtime**: materiais em URP precisam ter o keyword `_EMISSION` habilitado explicitamente via script; sem isso, `SetColor("_EmissionColor")` não tem efeito visual.
+- **Fade-in do painel**: foi necessário usar `CanvasGroup.alpha` com `Mathf.MoveTowards` pois `Color.Lerp` em um `Image` não suporta transparência sem `CanvasGroup`.
+- **GetComponent vs GetComponentInChildren**: ExibitoView está no filho `Quadro`, mas ExibitoController está no root do exibito. Corrigido usando `GetComponentInChildren<ExibitoView>(true)`.
+- **Ausência de headset**: todos os testes foram feitos com movimentação por teclado (WASD) e XR Device Simulator — a escala dos objetos foi calibrada visualmente no Editor.
 
 ---
 
@@ -13,29 +34,33 @@ O jogador navega por um ambiente 3D, coleta objetos interativos e acumula pontua
 MeuProjeto/
 ├── Assets/
 │   ├── Scripts/
-│   │   ├── GameManager.cs              ← Singleton central (MVC Controller)
-│   │   ├── PlayerController.cs         ← Movimentação XR + teclado
+│   │   ├── GaleriaManager.cs            ← Singleton central (MVC)
+│   │   ├── PlayerController.cs          ← Movimentação WASD + detecção por proximidade
 │   │   ├── Models/
-│   │   │   ├── AmbienteModel.cs        ← Estado da sessão VR
-│   │   │   ├── JogadorModel.cs         ← Pontuação e movimento
-│   │   │   └── ObjetoColetavelModel.cs ← Dados de cada objeto
+│   │   │   ├── ExibitoModel.cs          ← Dados de cada obra de arte
+│   │   │   ├── JogadorModel.cs          ← Pontuação, obras visitadas, tempo de sessão
+│   │   │   └── AmbienteModel.cs         ← Estado global do museu
 │   │   ├── Views/
-│   │   │   ├── HUDView.cs              ← Interface (pontuação, mensagens)
-│   │   │   ├── ObjetoColetavelView.cs  ← Animação e som dos objetos
-│   │   │   └── BotaoPrincipalView.cs   ← Feedback visual do botão
+│   │   │   ├── HUDView.cs               ← HUD World Space (auto-limpa mensagens)
+│   │   │   ├── ExibitoView.cs           ← Emissão URP + pulso verde ao ativar obra
+│   │   │   ├── PainelInfoView.cs        ← Canvas 3D com fade-in (CanvasGroup)
+│   │   │   ├── ObjetoColetavelView.cs   ← Rotação + encolhimento ao coletar
+│   │   │   └── BotaoPrincipalView.cs    ← Troca de cor (normal / hover / ativo)
 │   │   └── Controllers/
-│   │       ├── ObjetoColetavelController.cs ← Detecção de coleta
-│   │       └── BotaoPrincipalController.cs  ← Lógica do botão VR
-│   ├── Scenes/          ← Cena principal AmbienteVR.unity
-│   ├── Prefabs/         ← Prefabs reutilizáveis
-│   └── Materials/       ← Materiais dos objetos
-├── Packages/
-│   └── manifest.json    ← Meta XR SDK + dependências
+│   │       ├── ExibitoController.cs     ← Interação com obras (XR + proximidade)
+│   │       ├── PainelInfoController.cs  ← Exibe painel, auto-fecha em 6s
+│   │       ├── PortaAnimadaController.cs← Animação Quaternion.Lerp, toggle
+│   │       ├── ObjetoColetavelController.cs
+│   │       └── BotaoPrincipalController.cs
+│   ├── Editor/
+│   │   └── MuseumBuilder.cs             ← Menu MetaMuseu/► Construir Cena Completa
+│   ├── Scenes/                          ← scene1.unity (galeria principal)
+│   └── Materials/
+│       └── Museum/                      ← Materiais URP gerados pelo MuseumBuilder
+├── Packages/manifest.json               ← Meta XR SDK v201 + XR Interaction Toolkit 3.0.7
 ├── ProjectSettings/
-│   ├── ProjectVersion.txt
-│   ├── ProjectSettings.asset
-│   └── XRSettings.asset
 ├── .gitignore
+├── Relatorio_Tecnico_FilipeMazon_Avancado.txt
 └── README.md
 ```
 
@@ -43,31 +68,77 @@ MeuProjeto/
 
 ## Arquitetura MVC
 
-| Camada | Arquivo | Responsabilidade |
-|--------|---------|-----------------|
-| **Model** | `Models/*.cs` | Dados puros sem MonoBehaviour |
-| **View** | `Views/*.cs` | Apenas visual e áudio |
-| **Controller** | `GameManager.cs`, `PlayerController.cs`, `Controllers/*.cs` | Input, lógica, coordenação |
+| Camada | Arquivos | Responsabilidade |
+|--------|----------|-----------------|
+| **Model** | `Models/*.cs` | Dados puros, sem MonoBehaviour |
+| **View** | `Views/*.cs` | Visual (emissão, fade, cor) — zero lógica |
+| **Controller** | `Controllers/*.cs`, `GaleriaManager`, `PlayerController` | Input, lógica, coordenação |
 
-**Fluxo de dados:**
 ```
-Input (XR / Teclado)
+Proximidade detectada por PlayerController (Physics.OverlapSphere)
        ↓
-  Controller  ──atualiza──▶  Model
-       │
-       └──aciona──▶  View  (reflete o novo estado)
-       │
-       └──notifica──▶  GameManager  (pontuação, fim de jogo)
+  ExibitoController.AoEntrarHover()
+       ↓
+  ExibitoController.Ativar()  (apenas na primeira visita)
+       ├──view.AtivarDestaque()──────────▶ ExibitoView   (pulso de emissão verde)
+       ├──painelInfo.ExibirInfo()────────▶ PainelInfoController → PainelInfoView (fade-in)
+       └──GaleriaManager.Registrar()────▶ JogadorModel → HUDView (pontuação + mensagem)
 ```
 
 ---
 
-## Requisitos
+## Hierarquia da Cena
+
+```
+[--- MANAGEMENT ---]
+  └─ GaleriaManager          (GaleriaManager.cs — Singleton)
+  └─ EventSystem             (EventSystem + StandaloneInputModule)
+  └─ HUD_Canvas              (Canvas World Space + HUDView.cs)
+        ├─ Texto_Pontuacao   (TextMeshProUGUI)
+        └─ Texto_Mensagem    (TextMeshProUGUI)
+
+[--- PLAYER ---]
+  └─ XROrigin                (CharacterController + PlayerController | tag: Player)
+        └─ CameraOffset      (localPos 0, 1.7, 0)
+              └─ MainCamera  (Camera + AudioListener | tag: MainCamera)
+
+[--- ENVIRONMENT ---]
+  └─ Chao                    (Plane 20×20 m)
+  └─ Teto                    (Plane invertido, y=5)
+  └─ Parede_Norte            (Cube 20.6×5×0.3)
+  └─ Parede_Leste / Oeste    (Cube 0.3×5×20)
+  └─ Parede_Sul_Esq/Dir/Topo (3 cubos formando parede com vão de entrada)
+  └─ Directional_Light       (luz direcional âmbar)
+
+[--- EXIBITOS ---]
+  └─ Exibito_*               (ExibitoController + PainelInfoController)
+        ├─ Moldura           (Cube 1.72×1.27×0.05 — borda dourada da obra)
+        ├─ Tela              (Cube 1.50×1.05×0.02 — ExibitoView + XRSimpleInteractable)
+        ├─ Gancho            (Cylinder — suporte visual na parede)
+        ├─ ExhibitLight      (Light Spot — ilumina a obra)
+        └─ Painel_Info       (Canvas World Space + PainelInfoView — inativo até hover)
+              ├─ Fundo       (Image semitransparente)
+              └─ Texto_Info  (TextMeshProUGUI)
+
+[--- INTERACTABLES ---]
+  └─ Porta_Galeria_Pivot     (PortaAnimadaController — pivô da dobradiça, abre via botão)
+        └─ Painel_Porta      (Cube — folha da porta animada)
+  └─ Validador_Ingresso      (kiosque na ante-sala)
+        ├─ Suporte_Coluna    (Cylinder)
+        ├─ Suporte_Topo      (Cube)
+        ├─ Botao_Ingresso    (Sphere azul + BotaoPrincipalController + BotaoPrincipalView)
+        └─ Label             (Canvas — "Validar Ingresso")
+```
+
+---
+
+## Requisitos Técnicos
 
 - **Unity 6** (versão: 6000.3.14f1)
-- **Meta XR All-in-One SDK** v60+
-- **TextMeshPro** (incluso no Unity 2022)
-- **XR Plugin Management** (incluso no Unity)
+- **Meta XR SDK Core / Interaction / OVR** v201.0.0
+- **XR Interaction Toolkit** v3.0.7
+- **TextMeshPro** v3.0.6 (incluso no Unity 6)
+- **Universal Render Pipeline** v17.0.3
 - **Android Build Support** + Android SDK/NDK (para build no Quest)
 
 ---
@@ -75,83 +146,34 @@ Input (XR / Teclado)
 ## Setup Passo a Passo
 
 ### 1. Abrir o Projeto
-1. Abra o **Unity Hub** e certifique-se de ter o editor **6000.3.14f1** instalado
-2. Clique em **Open** → selecione a pasta `MeuProjeto/`
-3. Aguarde a importação dos pacotes (pode demorar na 1ª abertura)
+1. Abra o **Unity Hub** com o editor **6000.3.14f1**
+2. **Open** → selecione a pasta `MeuProjeto/`
+3. Aguarde a importação (~5 min na 1ª abertura)
 
-### 2. Instalar o Meta XR SDK
-> O `manifest.json` já inclui a dependência. Se não importar automaticamente:
-1. **Window → Package Manager → "+" → Add package by name**
-2. Nome: `com.meta.xr.sdk.all`
+### 2. Construir a Cena
+No Unity Editor: **MetaMuseu → ► Construir Cena Completa**
+
+O `MuseumBuilder.cs` cria toda a hierarquia automaticamente e conecta todas as referências. **Salve com Ctrl+S** após executar.
 
 ### 3. Configurar XR Plugin Management
 1. **Edit → Project Settings → XR Plugin Management**
-2. Aba **PC**: marque ✅ **Oculus** (teste no Editor)
-3. Aba **Android**: marque ✅ **Oculus** (build para Quest)
+2. Aba **PC**: ✅ OpenXR + Meta Quest Feature Group
+3. Aba **Android**: ✅ OpenXR + Meta Quest Feature Group
 
 ### 4. Build Settings para Android (Meta Quest)
 1. **File → Build Settings → Android → Switch Platform**
 2. **Player Settings → Other Settings:**
-   - Minimum API Level: **Android 10 (API 29)**
-   - Target API Level: **Android 12 (API 31)**
+   - Minimum API: **Android 10 (API 29)**
+   - Target API: **Android 12 (API 31)**
    - Texture Compression: **ASTC**
    - Scripting Backend: **IL2CPP**
    - Target Architectures: ✅ **ARM64**
 
-### 5. Hierarquia da Cena
-
-Crie os GameObjects com estes nomes exatos:
-
-```
-[--- MANAGEMENT ---]
-  └─ GameManager          → componente: GameManager.cs
-  └─ EventSystem          → componentes: EventSystem + StandaloneInputModule
-  └─ HUD_Canvas           → Canvas (World Space) + HUDView.cs
-        ├─ Texto_Pontuacao   → TextMeshProUGUI
-        ├─ Texto_Objetos     → TextMeshProUGUI
-        └─ Texto_Mensagem    → TextMeshProUGUI
-
-[--- PLAYER ---]
-  └─ XROrigin             → prefab Meta XR SDK + PlayerController.cs
-                             tag: "Player"
-
-[--- ENVIRONMENT ---]
-  └─ Plane_Chao           → 3D Object → Plane
-  └─ Directional Light
-  └─ Casa
-        ├─ Paredes
-        └─ Porta
-              └─ Macaneta
-
-[--- INTERACTABLES ---]
-  └─ Objeto_Coletavel_01  → mesh + Collider + ObjetoColetavelView + ObjetoColetavelController
-  └─ Objeto_Coletavel_02
-  └─ Objeto_Coletavel_03
-  └─ Botao_Principal      → mesh + Collider + BotaoPrincipalView + BotaoPrincipalController
-```
-
-### 6. Conectar Referências no Inspector
-
-| GameObject | Campo | Arrastar |
-|------------|-------|---------|
-| `GameManager` | Hud View | `HUD_Canvas` |
-| `PlayerController` | Referencia Camera | `Main Camera` |
-| `HUDView` | Texto Pontuacao | `Texto_Pontuacao` |
-| `HUDView` | Texto Objetos | `Texto_Objetos` |
-| `HUDView` | Texto Mensagem | `Texto_Mensagem` |
-| `ObjetoColetavelController` | Nome / Pontos | preencher manualmente |
-
-### 7. Conectar XRSimpleInteractable (opcional — interação com controle)
-
-Para cada `Objeto_Coletavel_XX`:
-1. Adicione o componente **XRSimpleInteractable**
-2. **Select Entered → "+" → ObjetoColetavelController / OnInteracaoXR**
-
-Para `Botao_Principal`:
-1. Adicione **XRSimpleInteractable**
-2. **HoverEntered → BotaoPrincipalController / AoEntrarHover**
-3. **HoverExited → BotaoPrincipalController / AoSairHover**
-4. **SelectEntered → BotaoPrincipalController / AoPressionar**
+### 5. (Opcional) XRSimpleInteractable para uso com headset
+Para cada `Exibito_*` → no `Quadro` filho:
+1. **Add Component → XRSimpleInteractable**
+2. **Hover Entered → ExibitoController / OnXRHoverEntered**
+3. **Hover Exited → ExibitoController / OnXRHoverExited**
 
 ---
 
@@ -159,22 +181,9 @@ Para `Botao_Principal`:
 
 | Ação | Controle |
 |------|---------|
-| Mover jogador | WASD ou setas |
-| Coletar objeto | Aproximar o player (trigger por proximidade) |
-| Ativar botão | Clique do mouse sobre o objeto |
-
-Para usar o **XR Meta Simulator** (emula controles):  
-**Window → XR → OpenXR → Meta XR Simulator → Enable**
-
----
-
-## Build para Meta Quest
-
-```
-1. Conecte o Quest via USB e ative o Modo Desenvolvedor
-2. File → Build Settings → Build and Run
-3. Aguarde a instalação automática no headset
-```
+| Mover pelo museu | WASD ou setas |
+| Interagir com obra (hover automático) | Aproximar do quadro |
+| Ativar modo XR Simulator | Window → XR → OpenXR → Meta XR Simulator → Enable |
 
 ---
 
@@ -182,11 +191,12 @@ Para usar o **XR Meta Simulator** (emula controles):
 
 | Critério | Peso |
 |----------|------|
-| Configuração Técnica (SDK, build, XR Plugin) | 40% |
-| Criatividade e Organização da cena | 30% |
-| Documentação (README, comentários, relatório) | 20% |
-| Funcionamento Geral (sem erros críticos) | 10% |
+| Configuração Técnica (SDK, build, XR Plugin) | 30% |
+| Interação e Funcionalidade | 25% |
+| Contexto de Metaverso | 20% |
+| Criatividade e Organização | 15% |
+| Documentação (README) | 10% |
 
 ---
 
-*Web 3.0 | Residência em TIC 29 — 2025*
+*Web 3.0 | Residência em TIC 29 — 2025 | Filipe Mazon*

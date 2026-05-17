@@ -1,0 +1,312 @@
+RELATÓRIO TÉCNICO — PROJETO VR NO METAVERSO
+Web 3.0 | Residência em TIC 29 — Atividade Avaliativa
+
+---
+
+SEÇÃO 1 — IDENTIFICAÇÃO
+
+Nome Completo: Filipe Mazon
+Turma / Residência: Web 3.0 — Residência em TIC 29
+Limitação de Hardware Relatada: Placa de vídeo sem suporte a Vulkan (Intel UHD integrada) e
+insuficiência de RAM para rodar o Meta Quest Link em tempo real. Por isso, a movimentação e
+os testes foram realizados exclusivamente no PC Editor (XR Device Simulator), sem uso de
+headset físico durante o desenvolvimento.
+
+---
+
+SEÇÃO 2 — CONCEITO DO PROJETO
+
+2.1 Nome do Projeto: MetaMuseu — Galeria de Arte Virtual
+
+2.2 Contexto e Objetivo no Metaverso:
+Criar um ambiente educacional e cultural imersivo no contexto do Metaverso, simulando uma
+galeria de arte virtual onde usuários podem visitar obras de arte digitais, interagir com
+painéis informativos e explorar o espaço como se estivessem em um museu físico — porém
+com recursos impossíveis no mundo real, como obras que brilham ao serem tocadas, artefatos
+colecionáveis flutuantes e uma porta animada de entrada. O objetivo é demonstrar como o
+Metaverso pode democratizar o acesso à cultura e à arte.
+
+2.3 Descrição Geral do Ambiente Virtual:
+Uma galeria de arte retangular com piso de mármore claro, teto branco e paredes bege.
+As dimensões simuladas são aproximadamente 30m x 30m. Nas paredes laterais estão
+distribuídas 5 obras de arte (quadros com moldura dourada, cada um com cor e temática
+únicas). Ao centro há 3 artefatos coletáveis flutuantes e um botão de tour guiado. Na
+entrada sul existe uma porta animada que abre/fecha por proximidade ou interação XR.
+A iluminação é quente (luz direcional com tom âmbar suave), criando sensação de ambiente
+refinado. O Skybox configurado é o padrão "Procedural Sky" do Unity com sun size pequeno
+para simular interior.
+
+---
+
+SEÇÃO 3 — CONFIGURAÇÃO TÉCNICA DO PROJETO
+
+3.1 Versão do Unity e Porquê:
+Unity 6000.3.14f1 (Unity 6 LTS), por ser a versão estável com suporte de longo prazo
+recomendada para Meta XR SDK v60+ e ter suporte nativo ao URP 17.
+
+3.2 Instalação do Meta XR SDK (Passo a Passo):
+1. Window → Package Manager → "+" → Add package by name
+2. Adicionado o scopo "com.meta.xr" no scopedRegistry do manifest.json apontando para
+   https://npm.developer.oculus.com
+3. Pacotes instalados:
+   - com.meta.xr.sdk.core (v201.0.0)
+   - com.meta.xr.sdk.interaction (v201.0.0)
+   - com.meta.xr.sdk.interaction.ovr (v201.0.0)
+4. XR Interaction Toolkit (v3.0.7) instalado pelo Package Manager oficial do Unity
+
+3.3 Configurações de Build para Android/Meta Quest:
+- File → Build Settings → Switch Platform → Android
+- Texture Compression: ASTC
+- Minimum API Level: Android 10 (API Level 29) — compatibilidade com Quest 2/3
+- Target API Level: Android 12 (API Level 31)
+- Scripting Backend: IL2CPP
+- Target Architectures: ARM64 (único suportado pelo Quest)
+- Player Settings → Company Name: FilipeMazon | Product Name: MetaMuseu
+
+3.4 Configuração do XR Plugin Management:
+- Edit → Project Settings → XR Plugin Management
+- Aba PC (Windows): marcado OpenXR + Meta Quest feature group
+- Aba Android: marcado OpenXR + Meta Quest feature group
+- Interaction Profile adicionado: Oculus Touch Controller Profile
+
+3.5 Movimentação no PC (Editor):
+Utilizado o sistema de proximidade via Physics.OverlapSphere no PlayerController.cs —
+o objeto XROrigin (tag: Player) é movido por WASD/setas no teclado. Para simular XR no
+Editor: Window → XR → OpenXR → Meta XR Simulator → Enable. Tecla E aciona interações
+com exibitos e portas; botão esquerdo do mouse ativa o Botão de Tour.
+
+---
+
+SEÇÃO 4 — ASSETS E ELEMENTOS DA CENA
+
+ASSET 1
+* Nome: Quadros das Obras de Arte (5 unidades)
+* Tipo: Objeto 3D (Primitive Cube com material colorido + emissão URP)
+* Origem: Primitive Unity com modificações de material via script
+* Função: Representar as obras de arte interativas da galeria
+
+ASSET 2
+* Nome: Artefatos Coletáveis (3 unidades: Urna, Cristal, Totem)
+* Tipo: Objeto 3D (Primitive Cube com rotação e encolhimento animados)
+* Origem: Primitive Unity com scripts de animação
+* Função: Objetos que o visitante coleta ao se aproximar, gerando pontuação
+
+ASSET 3
+* Nome: Porta Animada de Entrada
+* Tipo: Objeto 3D (Primitive Cube com PortaAnimadaController.cs)
+* Origem: Primitive Unity com animação via Quaternion.Lerp em script
+* Função: Porta que abre/fecha suavemente ao ser acionada por proximidade ou XR
+
+ASSET 4
+* Nome: Painéis de Informação (World Space Canvas)
+* Tipo: UI / Canvas 3D com TextMeshProUGUI
+* Origem: Unity UI com scripts PainelInfoView.cs e PainelInfoController.cs
+* Função: Exibir título, artista e descrição da obra ao ser interagida
+
+ASSET 5
+* Nome: HUD World Space (Canvas seguindo a câmera)
+* Tipo: UI / Canvas World Space
+* Origem: Unity UI com TextMeshPro e script HUDView.cs
+* Função: Mostrar pontuação, quantidade de obras visitadas e mensagens contextuais
+
+---
+
+SEÇÃO 5 — HIERARQUIA DE GAME OBJECTS
+
+Scene: MetaMuseu_Galeria
+
+[--- MANAGEMENT ---]
+  └─ GaleriaManager          → GaleriaManager.cs (Singleton)
+  └─ EventSystem             → EventSystem + StandaloneInputModule
+  └─ HUD_Canvas              → Canvas (World Space) + HUDView.cs
+        ├─ Texto_Pontuacao   → TextMeshProUGUI
+        ├─ Texto_Objetos     → TextMeshProUGUI
+        └─ Texto_Mensagem    → TextMeshProUGUI
+
+[--- PLAYER ---]
+  └─ XROrigin                → PlayerController.cs | tag: "Player"
+        └─ CameraOffset
+              └─ MainCamera  → Camera + AudioListener | tag: "MainCamera"
+
+[--- ENVIRONMENT ---]
+  └─ Chao_Marmore            → Plane (scale 3,1,4)
+  └─ Teto                    → Plane invertido (y=4)
+  └─ Parede_Norte            → Cube
+  └─ Parede_Sul              → Cube
+  └─ Parede_Leste            → Cube
+  └─ Parede_Oeste            → Cube
+  └─ Directional_Light       → Light (Directional, warm amber)
+  └─ Porta_Entrada           → PortaAnimadaController.cs
+        └─ Porta_Malha       → Cube (marrom madeira)
+              └─ Macaneta    → Sphere (dourada)
+
+[--- EXIBITOS ---]
+  └─ Exibito_Harmonia_Cibernetica   → ExibitoController.cs
+        ├─ Quadro            → Cube + ExibitoView.cs
+        ├─ Moldura           → Cube
+        ├─ Pedestal          → Cylinder
+        └─ Painel_Info       → Canvas (World Space) + PainelInfoView.cs + PainelInfoController.cs
+  └─ Exibito_Floresta_Digital       → (mesma estrutura)
+  └─ Exibito_O_Sonho_do_Metaverso   → (mesma estrutura)
+  └─ Exibito_Reflexos_do_Futuro     → (mesma estrutura)
+  └─ Exibito_Codigo_e_Alma          → (mesma estrutura)
+
+[--- INTERACTABLES ---]
+  └─ Artefato_Urna           → Cube + ObjetoColetavelView.cs + ObjetoColetavelController.cs
+  └─ Artefato_Cristal        → Cube + ObjetoColetavelView.cs + ObjetoColetavelController.cs
+  └─ Artefato_Totem          → Cube + ObjetoColetavelView.cs + ObjetoColetavelController.cs
+  └─ Botao_TourGuiado        → Cylinder + BotaoPrincipalView.cs + BotaoPrincipalController.cs
+        └─ Label_Tour        → Cube (azul, decorativo)
+
+---
+
+SEÇÃO 6 — SISTEMA DE INTERAÇÃO
+
+6.1 Descrição da Interação Principal:
+O visitante se aproxima de uma obra de arte (ExibitoController). O quadro recebe um
+highlight dourado (ExibitoView) e o HUD mostra o nome da obra. Ao pressionar E (ou
+Trigger no controle VR), o quadro começa a pulsar em verde, um painel de informação
+(PainelInfoView) aparece com fade-in mostrando título, artista, ano e descrição da obra.
+Após 6 segundos o painel desaparece automaticamente. GaleriaManager registra a visita
+e incrementa pontuação e contador de obras.
+
+6.2 Lógica da Interação (Passos):
+1. PlayerController emite Physics.OverlapSphere a cada Update()
+2. Ao detectar ExibitoController na zona, entra em estado de hover
+3. Input.GetKeyDown(KeyCode.E) → chama ExibitoController.Ativar()
+4. ExibitoController verifica modelo.foiInteragido (evita dupla ativação)
+5. ExibitoView.AtivarDestaque() → inicia pulso de emissão verde no material URP
+6. PainelInfoController.ExibirInfo(texto) → PainelInfoView.Exibir() ativa Canvas + fade-in
+7. GaleriaManager.RegistrarInteracaoExibito() → atualiza JogadorModel e chama HUDView
+
+6.3 Script C# — ExibitoController.cs
+
+using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
+
+public class ExibitoController : MonoBehaviour
+{
+    [Header("Dados da Obra")]
+    [SerializeField] public string titulo    = "Obra Sem Título";
+    [SerializeField] public string artista   = "Artista Desconhecido";
+    [SerializeField] public int    ano       = 2025;
+    [SerializeField][TextArea] public string descricao = "Descrição da obra de arte.";
+    [SerializeField] public int    pontosInteracao = 15;
+
+    [Header("Referências")]
+    [SerializeField] private PainelInfoController painelInfo;
+
+    private ExibitoModel modelo;
+    private ExibitoView   view;
+
+    private void Awake()
+    {
+        // GetComponentInChildren: ExibitoView está no filho Quadro, não no root
+        view   = GetComponentInChildren<ExibitoView>(true);
+        modelo = new ExibitoModel(titulo, descricao, artista, ano);
+    }
+
+    public void Ativar()
+    {
+        if (modelo.foiInteragido) return;
+        modelo.foiInteragido = true;
+
+        view?.AtivarDestaque();
+
+        if (painelInfo != null)
+            painelInfo.ExibirInfo(modelo.FormatarInfo());
+
+        GaleriaManager.Instance?.RegistrarInteracaoExibito(titulo, pontosInteracao);
+    }
+
+    public void AoEntrarHover()
+    {
+        view?.SetHover(true);
+        GaleriaManager.Instance?.ExibirMensagem($"Obra: {titulo} — Pressione E para interagir");
+    }
+
+    public void AoSairHover()
+    {
+        view?.SetHover(false);
+        GaleriaManager.Instance?.ExibirMensagem("Explore o MetaMuseu!");
+    }
+
+    public void OnXRSelectEntered(SelectEnterEventArgs _) => Ativar();
+    public void OnXRHoverEntered(HoverEnterEventArgs _)   => AoEntrarHover();
+    public void OnXRHoverExited(HoverExitEventArgs _)     => AoSairHover();
+}
+
+---
+
+SEÇÃO 7 — PLANEJAMENTO DO REPOSITÓRIO GITHUB
+
+7.1 Nome do Repositório: MetaMuseu-VR-TIC29
+
+7.2 Estrutura de Pastas:
+/Assets
+  /Scripts
+    /Models       → ExibitoModel.cs, JogadorModel.cs, AmbienteModel.cs
+    /Views        → HUDView.cs, ExibitoView.cs, PainelInfoView.cs,
+                    ObjetoColetavelView.cs, BotaoPrincipalView.cs
+    /Controllers  → ExibitoController.cs, PainelInfoController.cs,
+                    PortaAnimadaController.cs, ObjetoColetavelController.cs,
+                    BotaoPrincipalController.cs
+    GaleriaManager.cs
+    PlayerController.cs
+  /Editor
+    MuseumBuilder.cs
+  /Scenes         → MetaMuseu_Galeria.unity
+  /Prefabs        → Prefabs exportados dos exibitos
+  /Materials      → Materiais dos objetos
+
+/Packages/manifest.json
+/ProjectSettings/ (apenas arquivos essenciais)
+.gitignore       → ignora /Library, /Temp, /Logs, /obj, /UserSettings
+
+---
+
+SEÇÃO 8 — PLANO DE EXECUÇÃO PASSO A PASSO
+
+1. Etapa 1: Instalação do Unity 6000.3.14f1 e criação do projeto 3D com URP template.
+2. Etapa 2: Configuração do manifest.json com scoped registry da Meta e importação
+   dos pacotes Meta XR SDK Core, Interaction e OVR via Package Manager.
+3. Etapa 3: XR Plugin Management — habilitar OpenXR nas abas PC e Android; adicionar
+   Oculus Touch Controller Profile.
+4. Etapa 4: Build Settings → Switch Platform para Android; configurar Player Settings
+   (API 29 min, ARM64, IL2CPP, ASTC).
+5. Etapa 5: Execução do menu MetaMuseu/► Construir Cena Completa para criar a hierarquia
+   completa da cena via MuseumBuilder.cs (Editor script — único, auto-conecta tudo).
+6. Etapa 6: Materiais URP criados automaticamente pelo MuseumBuilder em Assets/Materials/Museum/;
+   materiais únicos por obra preservam a cor no material instance criado em runtime.
+7. Etapa 7: Todas as referências (HUDView→GaleriaManager, PainelInfo→Exibito, textos→HUD,
+   câmera→PlayerController) conectadas automaticamente pelo MuseumBuilder.ConectarReferencias().
+8. Etapa 8: Adicionar XRSimpleInteractable em cada exibito e configurar eventos
+   (SelectEntered → OnXRSelectEntered; HoverEntered → OnXRHoverEntered).
+9. Etapa 9: Testes no Editor com WASD (movimentação) e tecla E (interações).
+10. Etapa 10: Revisão final, push para GitHub e envio do link na plataforma Homero.
+
+---
+
+SEÇÃO 9 — REFLEXÃO FINAL
+
+9.1 Aprendizado:
+Compreendi na prática como o XR Interaction Toolkit abstrai a complexidade do hardware VR,
+permitindo que os mesmos scripts funcionem no Editor (teclado) e no headset (controllers).
+A arquitetura MVC foi essencial para manter os scripts organizados e reutilizáveis —
+separar ExibitoModel (dados), ExibitoView (visual) e ExibitoController (lógica) tornou
+muito mais fácil adicionar novas obras sem modificar código existente.
+
+9.2 Dificuldades Previstas:
+A principal dificuldade será otimizar o Draw Call count para rodar a 72fps no Quest 2,
+já que o museu tem muitos objetos individuais. A solução planejada é usar GPU Instancing
+nos materiais e combinar as paredes em Static Batching. Outra dificuldade foi a ausência
+de headset para testar a escala real dos objetos — o XR Device Simulator não representa
+fielmente as proporções do ambiente em VR.
+
+9.3 Melhorias Futuras:
+- Implementar suporte multiplayer usando Photon PUN2 para visitas simultâneas de vários
+  usuários ao museu virtual.
+- Adicionar áudio espacial (AudioSource 3D) com narração das obras via AudioClip.
+- Criar um sistema de teleporte entre salas para museus maiores.
+- Integrar NFTs reais das obras via smart contract Ethereum, permitindo que os visitantes
+  "comprem" obras diretamente no Metaverso.

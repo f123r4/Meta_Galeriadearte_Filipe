@@ -30,3 +30,20 @@ Thumbs.db
 
 # Logs e temporários Unity
 crashlytics-build.properties
+
+# Assets de terceiros grandes (acima do limite do GitHub)
+/Assets/ALP_Assets/
+/Assets/ALP_Assets.meta
+/Assets/KoreanScienceTech_new/
+/Assets/KoreanScienceTech_new.meta
+/Assets/PolyKebap/
+/Assets/PolyKebap.meta
+/Assets/Free Wood Door Pack/
+/Assets/Free Wood Door Pack.meta
+/Assets/MeuAmbienteVR_BurstDebugInformation_DoNotShip/
+
+# Arquivos locais/diagnóstico
+diagnose_unity.sh
+.utmp/
+.vscode/
+*.docx
