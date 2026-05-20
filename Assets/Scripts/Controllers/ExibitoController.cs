@@ -6,11 +6,11 @@ using UnityEngine.XR.Interaction.Toolkit;
 public class ExibitoController : MonoBehaviour
 {
     [Header("Dados da Obra")]
-    [SerializeField] public string titulo    = "Obra Sem Título";
-    [SerializeField] public string artista   = "Artista Desconhecido";
-    [SerializeField] public int    ano       = 2025;
-    [SerializeField][TextArea] public string descricao = "Descrição da obra de arte.";
-    [SerializeField] public int    pontosInteracao = 15;
+    public string titulo    = "Obra Sem Título";
+    public string artista   = "Artista Desconhecido";
+    public int    ano       = 2025;
+    [TextArea] public string descricao = "Descrição da obra de arte.";
+    public int    pontosInteracao = 15;
 
     [Header("Referências")]
     [SerializeField] private PainelInfoController painelInfo;

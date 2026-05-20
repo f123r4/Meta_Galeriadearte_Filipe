@@ -61,10 +61,10 @@ public class PortaAnimadaController : MonoBehaviour
         GaleriaManager.Instance?.ExibirMensagem($"Porta {estado}!");
     }
 
-    // ── Eventos XR ────────────────────────────────────────────────────────────
+    // Eventos XR
     public void OnXRSelectEntered(SelectEnterEventArgs _) => Alternar();
 
-    // ── Proximidade automática (só quando habilitada) ─────────────────────────
+    // Proximidade automática
     private void OnTriggerEnter(Collider other)
     {
         if (!autoAbrirProximidade) return;

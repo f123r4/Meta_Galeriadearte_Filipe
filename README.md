@@ -187,16 +187,5 @@ Para cada `Exibito_*` → no `Quadro` filho:
 
 ---
 
-## Critérios de Avaliação (referência)
-
-| Critério | Peso |
-|----------|------|
-| Configuração Técnica (SDK, build, XR Plugin) | 30% |
-| Interação e Funcionalidade | 25% |
-| Contexto de Metaverso | 20% |
-| Criatividade e Organização | 15% |
-| Documentação (README) | 10% |
-
----
 
 *Web 3.0 | Residência em TIC 29 — 2026 | Filipe Mazon*

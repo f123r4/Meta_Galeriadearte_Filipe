@@ -4,7 +4,7 @@ public class GaleriaManager : MonoBehaviour
 {
     public static GaleriaManager Instance { get; private set; }
 
-    [SerializeField] public HUDView hudView;
+    public HUDView hudView;
 
     private JogadorModel jogador      = new JogadorModel();
     private int          totalExibitos = 0;

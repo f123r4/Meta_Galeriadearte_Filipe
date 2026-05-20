@@ -5,8 +5,8 @@ using UnityEngine.XR.Interaction.Toolkit;
 // Integrado com GaleriaManager (versão avançada).
 public class ObjetoColetavelController : MonoBehaviour
 {
-    [SerializeField] public string nomeObjeto = "Artefato";
-    [SerializeField] public int    pontos     = 10;
+    public string nomeObjeto = "Artefato";
+    public int    pontos     = 10;
 
     private bool coletado = false;
 

@@ -47,7 +47,7 @@ public static class LightingSetup
     public static void ApenasMarcar()
     {
         int marcados = MarcarStaticFlags();
-        Debug.Log($"[LightingSetup] ✅ {marcados} objetos marcados como Lightmap Static. " +
+        Debug.Log($"[LightingSetup] {marcados} objetos marcados como Lightmap Static. " +
                   "Use Window ▶ Rendering ▶ Lighting ▶ Generate Lighting para bake manual.");
     }
 
@@ -125,7 +125,7 @@ public static class LightingSetup
     private static void OnBakeDone()
     {
         Lightmapping.bakeCompleted -= OnBakeDone;
-        Debug.Log("[LightingSetup] ✅ Bake concluído! Salve a cena com Ctrl+S.");
+        Debug.Log("[LightingSetup] Bake concluído! Salve a cena com Ctrl+S.");
         EditorSceneManager.MarkAllScenesDirty();
     }
 }

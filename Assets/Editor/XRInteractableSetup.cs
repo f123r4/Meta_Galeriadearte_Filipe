@@ -58,7 +58,6 @@ public static class XRInteractableSetup
         {
             var tela = ex.transform.Find("Tela");
 
-            // ── Se "Tela" não existe, cria como filho do exibito ─────────────
             if (tela == null)
             {
                 var moldura = ex.transform.Find("Moldura");
@@ -86,7 +85,6 @@ public static class XRInteractableSetup
                 criados++;
             }
 
-            // ── XRSimpleInteractable ─────────────────────────────────────────
             var go = tela.gameObject;
 
             if (go.GetComponent<XRSimpleInteractable>() != null)
@@ -108,7 +106,7 @@ public static class XRInteractableSetup
         if (criados > 0 || adicionados > 0)
         {
             EditorSceneManager.MarkAllScenesDirty();
-            Debug.Log($"[XRInteractableSetup] ✅  " +
+            Debug.Log($"[XRInteractableSetup] " +
                       $"Tela criada: {criados} | " +
                       $"XRSimpleInteractable adicionado: {adicionados} | " +
                       $"Já existiam: {jaExistiam}. — Salve com Ctrl+S.");

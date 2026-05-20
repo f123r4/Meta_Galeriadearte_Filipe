@@ -15,7 +15,7 @@ using UnityEngine.UI;
 /// </summary>
 public static class MuseumBuilder
 {
-    // ── Paleta ────────────────────────────────────────────────────────────────
+    // Paleta
     static readonly Color CorPiso    = new Color(0.88f, 0.84f, 0.76f);
     static readonly Color CorTeto    = new Color(0.97f, 0.97f, 0.97f);
     static readonly Color CorParede  = new Color(0.95f, 0.93f, 0.90f);
@@ -26,7 +26,7 @@ public static class MuseumBuilder
 
     struct Mats { public Material piso, teto, parede, moldura, suporte, tela, botao; }
 
-    // ── Dimensões ─────────────────────────────────────────────────────────────
+    // Dimensões
     // Sala única: x [-10, +10], z [-14, +10], y [0, 5]
     // Parede divisória (ante-sala/salão) em z = -4, com vão de porta 3×3 m centrado em x=0.
     const float MEIO_W    = 10f;   // metade da largura (x: -10 a +10)
@@ -52,10 +52,10 @@ public static class MuseumBuilder
         XRInteractableSetup.Aplicar();
         AssetDatabase.SaveAssets();
         EditorSceneManager.MarkAllScenesDirty();
-        Debug.Log("[MuseumBuilder] ✅ Galeria de Arte construída! Salve com Ctrl+S.");
+        Debug.Log("[MuseumBuilder] Galeria de Arte construída! Salve com Ctrl+S.");
     }
 
-    // ── 1. Limpeza total ──────────────────────────────────────────────────────
+    // 1. Limpeza total
     static void LimparCena()
     {
         foreach (var nome in new[]
@@ -69,7 +69,7 @@ public static class MuseumBuilder
         }
     }
 
-    // ── 2. Materiais URP persistidos em Assets/Materials/Museum/ ─────────────
+    // 2. Materiais
     static Mats CriarMateriais()
     {
         Directory.CreateDirectory("Assets/Materials/Museum");
@@ -110,7 +110,7 @@ public static class MuseumBuilder
         return mat;
     }
 
-    // ── 3. Management: GaleriaManager + EventSystem + HUD Canvas ─────────────
+    // 3. Management
     static void CriarManagement()
     {
         var raiz = new GameObject("[--- MANAGEMENT ---]");
@@ -133,7 +133,7 @@ public static class MuseumBuilder
         hudObj.AddComponent<HUDView>();
     }
 
-    // ── 4. Player: XROrigin na ante-sala olhando norte ────────────────────────
+    // 4. Player
     static void CriarPlayer()
     {
         var raiz   = new GameObject("[--- PLAYER ---]");
@@ -155,7 +155,7 @@ public static class MuseumBuilder
         camObj.AddComponent<AudioListener>();
     }
 
-    // ── 5. Ambiente: sala única com parede divisória e iluminação ────────────
+    // 5. Ambiente
     static void CriarAmbiente(Mats m)
     {
         var raiz = new GameObject("[--- ENVIRONMENT ---]");
@@ -239,7 +239,7 @@ public static class MuseumBuilder
         RenderSettings.ambientLight = new Color(0.45f, 0.43f, 0.40f);
     }
 
-    // ── 6. Exibitos: 6 quadros pendurados nas paredes do salão ───────────────
+    // 6. Exibitos
     static void CriarExibitos(Mats m)
     {
         var raiz = new GameObject("[--- EXIBITOS ---]");
@@ -360,12 +360,11 @@ public static class MuseumBuilder
         canvasObj.SetActive(false);
     }
 
-    // ── 7. Interactables: validador de ingresso na ante-sala + porta ─────────
+    // 7. Interactables
     static void CriarInteractables(Mats m)
     {
         var raiz = new GameObject("[--- INTERACTABLES ---]");
 
-        // ── Validador de Ingresso (kiosque na ante-sala) ──────────────────────
         var kiosque = Filho(raiz, "Validador_Ingresso");
         kiosque.transform.position = new Vector3(3f, 0f, -8.5f);
 
@@ -403,7 +402,6 @@ public static class MuseumBuilder
         ltxt.fontStyle = FontStyles.Bold;
         ltxt.GetComponent<RectTransform>().sizeDelta = new Vector2(280, 130);
 
-        // ── Porta entre ante-sala e salão ─────────────────────────────────────
         // Pivot na dobradiça esquerda do vão (x = -1.5, z = Z_DIVISOR).
         // O painel filho está no centro local (1.5, 1.5, 0) → cobre o vão 3×3 m exatamente.
         var pivot = Filho(raiz, "Porta_Galeria_Pivot");
@@ -428,7 +426,7 @@ public static class MuseumBuilder
         EditorUtility.SetDirty(raiz);
     }
 
-    // ── 8. Auto-wire de todas as referências ─────────────────────────────────
+    // 8. Referências
     static void ConectarReferencias()
     {
         // GaleriaManager → HUDView
@@ -494,7 +492,7 @@ public static class MuseumBuilder
         Debug.Log("[MuseumBuilder] Referências conectadas automaticamente.");
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────────
+    // Helpers
 
     static GameObject Filho(GameObject pai, string nome)
     {

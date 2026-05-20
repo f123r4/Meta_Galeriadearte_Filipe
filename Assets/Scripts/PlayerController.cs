@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] public Camera referenciaCamera;
+    public Camera referenciaCamera;
     [SerializeField] private float velocidade        = 3f;
     [SerializeField] private float velocidadeRotacao = 120f;
     [SerializeField] private float raioInteracao     = 1.8f;
@@ -16,7 +16,10 @@ public class PlayerController : MonoBehaviour
     private ExibitoController          _exibitoAtual;
     private BotaoPrincipalController   _botaoAtual;
 
-    private void Awake() => _cc = GetComponent<CharacterController>();
+    private void Awake()
+    {
+        _cc = GetComponent<CharacterController>();
+    }
 
     private void Update()
     {
@@ -82,9 +85,4 @@ public class PlayerController : MonoBehaviour
             _botaoAtual.AoPressionarProximidade();
     }
 
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.cyan;
-        Gizmos.DrawWireSphere(transform.position, raioInteracao);
-    }
 }

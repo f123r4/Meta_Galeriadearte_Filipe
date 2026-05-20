@@ -3,8 +3,8 @@ using TMPro;
 
 public class HUDView : MonoBehaviour
 {
-    [SerializeField] public TextMeshProUGUI textoPontuacao;
-    [SerializeField] public TextMeshProUGUI textoMensagem;
+    public TextMeshProUGUI textoPontuacao;
+    public TextMeshProUGUI textoMensagem;
 
     [SerializeField] private float distancia    = 2f;
     [SerializeField] private float alturaOffset = 1.4f;
@@ -24,7 +24,7 @@ public class HUDView : MonoBehaviour
         GameObject ancora = GameObject.FindWithTag("Player");
         if (ancora == null)
         {
-            var cam = Camera.main ?? FindFirstObjectByType<Camera>();
+            var cam = Camera.main ?? FindObjectOfType<Camera>();
             if (cam != null) ancora = cam.gameObject;
         }
         if (ancora == null) return;

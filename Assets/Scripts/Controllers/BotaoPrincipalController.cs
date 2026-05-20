@@ -35,7 +35,7 @@ public class BotaoPrincipalController : MonoBehaviour
         GaleriaManager.Instance?.RegistrarIngressoAprovado();
     }
 
-    // ── Eventos XR ────────────────────────────────────────────────────────────
+    // Eventos XR
     public void AoEntrarHover(HoverEnterEventArgs _)  => AoEntrarHoverProximidade();
     public void AoSairHover(HoverExitEventArgs _)     => AoSairHoverProximidade();
     public void AoPressionar(SelectEnterEventArgs _)  => AoPressionarProximidade();
